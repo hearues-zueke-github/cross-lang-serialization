@@ -62,6 +62,58 @@ class CrossLangSerialization:
 		self.dt_load = None
 
 
+	def print_data(self):
+		print('d_str_to_arr_u8: ')
+		for key in self.d_str_to_arr_u8.keys():
+			arr = self.d_str_to_arr_u8[key]
+			print(f'- "{key}": {arr}')
+
+		print('d_str_to_arr_u16: ')
+		for key in self.d_str_to_arr_u16.keys():
+			arr = self.d_str_to_arr_u16[key]
+			print(f'- "{key}": {arr}')
+
+		print('d_str_to_arr_u32: ')
+		for key in self.d_str_to_arr_u32.keys():
+			arr = self.d_str_to_arr_u32[key]
+			print(f'- "{key}": {arr}')
+
+		print('d_str_to_arr_u64: ')
+		for key in self.d_str_to_arr_u64.keys():
+			arr = self.d_str_to_arr_u64[key]
+			print(f'- "{key}": {arr}')
+
+		print('d_str_to_arr_i8: ')
+		for key in self.d_str_to_arr_i8.keys():
+			arr = self.d_str_to_arr_i8[key]
+			print(f'- "{key}": {arr}')
+
+		print('d_str_to_arr_i16: ')
+		for key in self.d_str_to_arr_i16.keys():
+			arr = self.d_str_to_arr_i16[key]
+			print(f'- "{key}": {arr}')
+
+		print('d_str_to_arr_i32: ')
+		for key in self.d_str_to_arr_i32.keys():
+			arr = self.d_str_to_arr_i32[key]
+			print(f'- "{key}": {arr}')
+
+		print('d_str_to_arr_i64: ')
+		for key in self.d_str_to_arr_i64.keys():
+			arr = self.d_str_to_arr_i64[key]
+			print(f'- "{key}": {arr}')
+
+		print('d_str_to_arr_f32: ')
+		for key in self.d_str_to_arr_f32.keys():
+			arr = self.d_str_to_arr_f32[key]
+			print(f'- "{key}": {arr}')
+
+		print('d_str_to_arr_f64: ')
+		for key in self.d_str_to_arr_f64.keys():
+			arr = self.d_str_to_arr_f64[key]
+			print(f'- "{key}": {arr}')
+
+
 	def equal(self, other):
 		l_d1_d2 = [
 			(self.d_str_to_arr_u8, other.d_str_to_arr_u8),
@@ -103,7 +155,12 @@ class CrossLangSerialization:
 		# amount of elements u32
 		# data itself in u8 format, length of bytes is amount of elements * bytes of type
 		
-		timestamp_str = datetime.strftime(self.dt, '%Y%m%d%H%M%S%f')
+		if self.dt_load is None:
+			dt = self.dt
+		else:
+			dt = self.dt_load
+
+		timestamp_str = datetime.strftime(dt, '%Y%m%d%H%M%S%f')
 		
 		# prepare all metadata of each content
 		l_metadata = []
@@ -123,9 +180,10 @@ class CrossLangSerialization:
 			l_key = sorted(d.keys())
 			for key in l_key:
 				arr = d[key]
-				type_byte_amount = np_type().size
+				type_byte_amount = np_type().nbytes
 				content_length = 32 + 2 + len(key) + 1 + 4 + type_byte_amount * arr.shape[0]
 				l_metadata.append((d, key, arr, np_type, content_length))
+				print(f'- arr: {arr}, type_byte_amount: {type_byte_amount}, content_length: {content_length}')
 
 		l_content_length = []
 		for _, _, _, _, content_length in l_metadata:
@@ -282,3 +340,5 @@ if __name__ == '__main__':
 	assert cross_lang_serialization.equal(cross_lang_serialization_load_1)
 	assert cross_lang_serialization.equal(cross_lang_serialization_load_2)
 	assert cross_lang_serialization_load_1.equal(cross_lang_serialization_load_2)
+
+	cross_lang_serialization.print_data()
