@@ -1,60 +1,58 @@
+module arraybyte_serialization
+
 import crypto.sha256
 import os
 import time
 
-import rand
-import rand.seed
-import rand.pcg32
+// TODO: move this constant into another file, and read from it
+const magic_timestamp = '20250408130000'
+const magic_version = '0.1v\0\0\0\0'
 
-const (
-	// TODO: move this constant into another file, and read from it
-	magic_timestamp = '20250408130000'
-	magic_version = '0.1v\0\0\0\0'
+const map_type_name_to_type_nr = {
+	'u8': 0x01,
+	'u16': 0x02,
+	'u32': 0x03,
+	'u64': 0x04,
+	'i8': 0x05,
+	'i16': 0x06,
+	'i32': 0x07,
+	'i64': 0x08,
+	'f32': 0x09,
+	'f64': 0x0A,
+}
 
-	map_type_name_to_type_nr = {
-		'u8': 0x01,
-		'u16': 0x02,
-		'u32': 0x03,
-		'u64': 0x04,
-		'i8': 0x05,
-		'i16': 0x06,
-		'i32': 0x07,
-		'i64': 0x08,
-		'f32': 0x09,
-		'f64': 0x0A,
-	}
+const map_type_nr_to_type_name = {
+	u8(0x01): 'u8',
+	0x02: 'u16',
+	0x03: 'u32',
+	0x04: 'u64',
+	0x05: 'i8',
+	0x06: 'i16',
+	0x07: 'i32',
+	0x08: 'i64',
+	0x09: 'f32',
+	0x0A: 'f64',
+}
 
-	map_type_nr_to_type_name = {
-		u8(0x01): 'u8',
-		0x02: 'u16',
-		0x03: 'u32',
-		0x04: 'u64',
-		0x05: 'i8',
-		0x06: 'i16',
-		0x07: 'i32',
-		0x08: 'i64',
-		0x09: 'f32',
-		0x0A: 'f64',
-	}
+const map_type_name_to_amount_bytes_per_type = {
+	'u8': i32(1),
+	'u16': 2,
+	'u32': 4,
+	'u64': 8,
+	'i8': 1,
+	'i16': 2,
+	'i32': 4,
+	'i64': 8,
+	'f32': 4,
+	'f64': 8,
+}
 
-	map_type_name_to_amount_bytes_per_type = {
-		'u8': i32(1),
-		'u16': 2,
-		'u32': 4,
-		'u64': 8,
-		'i8': 1,
-		'i16': 2,
-		'i32': 4,
-		'i64': 8,
-		'f32': 4,
-		'f64': 8,
-	}
+const empty_dt := time.Time{}
 
-	empty_dt := time.Time{}
-)
-
-struct CrossLangSerialization {
-mut:
+pub struct CrossLangSerialization {
+pub mut:
+	dt time.Time
+	dt_load time.Time
 	map_str_to_arr_u8 map[string][]u8
 	map_str_to_arr_u16 map[string][]u16
 	map_str_to_arr_u32 map[string][]u32
@@ -65,79 +63,78 @@ mut:
 	map_str_to_arr_i64 map[string][]i64
 	map_str_to_arr_f32 map[string][]f32
 	map_str_to_arr_f64 map[string][]f64
-	dt time.Time
-	dt_load time.Time
 }
 
-fn CrossLangSerialization.new() CrossLangSerialization {
+pub fn CrossLangSerialization.new() CrossLangSerialization {
 	return CrossLangSerialization{
 		dt: time.now()
+		dt_load: empty_dt
 	}
 }
 
-fn (cross_lang_serialization &CrossLangSerialization) print_data() {
+pub fn (cross_lang_serialization &CrossLangSerialization) print_data() {
 	println('map_str_to_arr_u8: ')
 	for key in cross_lang_serialization.map_str_to_arr_u8.keys() {
-		arr := &(cross_lang_serialization.map_str_to_arr_u8[key])
+		arr := unsafe { &(cross_lang_serialization.map_str_to_arr_u8[key]) }
 		println('- "${key}": ${arr}')
 	}
 
 	println('map_str_to_arr_u16: ')
 	for key in cross_lang_serialization.map_str_to_arr_u16.keys() {
-		arr := &(cross_lang_serialization.map_str_to_arr_u16[key])
+		arr := unsafe { &(cross_lang_serialization.map_str_to_arr_u16[key]) }
 		println('- "${key}": ${arr}')
 	}
 
 	println('map_str_to_arr_u32: ')
 	for key in cross_lang_serialization.map_str_to_arr_u32.keys() {
-		arr := &(cross_lang_serialization.map_str_to_arr_u32[key])
+		arr := unsafe { &(cross_lang_serialization.map_str_to_arr_u32[key]) }
 		println('- "${key}": ${arr}')
 	}
 
 	println('map_str_to_arr_u64: ')
 	for key in cross_lang_serialization.map_str_to_arr_u64.keys() {
-		arr := &(cross_lang_serialization.map_str_to_arr_u64[key])
+		arr := unsafe { &(cross_lang_serialization.map_str_to_arr_u64[key]) }
 		println('- "${key}": ${arr}')
 	}
 
 	println('map_str_to_arr_i8: ')
 	for key in cross_lang_serialization.map_str_to_arr_i8.keys() {
-		arr := &(cross_lang_serialization.map_str_to_arr_i8[key])
+		arr := unsafe { &(cross_lang_serialization.map_str_to_arr_i8[key]) }
 		println('- "${key}": ${arr}')
 	}
 
 	println('map_str_to_arr_i16: ')
 	for key in cross_lang_serialization.map_str_to_arr_i16.keys() {
-		arr := &(cross_lang_serialization.map_str_to_arr_i16[key])
+		arr := unsafe { &(cross_lang_serialization.map_str_to_arr_i16[key]) }
 		println('- "${key}": ${arr}')
 	}
 
 	println('map_str_to_arr_i32: ')
 	for key in cross_lang_serialization.map_str_to_arr_i32.keys() {
-		arr := &(cross_lang_serialization.map_str_to_arr_i32[key])
+		arr := unsafe { &(cross_lang_serialization.map_str_to_arr_i32[key]) }
 		println('- "${key}": ${arr}')
 	}
 
 	println('map_str_to_arr_i64: ')
 	for key in cross_lang_serialization.map_str_to_arr_i64.keys() {
-		arr := &(cross_lang_serialization.map_str_to_arr_i64[key])
+		arr := unsafe { &(cross_lang_serialization.map_str_to_arr_i64[key]) }
 		println('- "${key}": ${arr}')
 	}
 
 	println('map_str_to_arr_f32: ')
 	for key in cross_lang_serialization.map_str_to_arr_f32.keys() {
-		arr := &(cross_lang_serialization.map_str_to_arr_f32[key])
+		arr := unsafe { &(cross_lang_serialization.map_str_to_arr_f32[key]) }
 		println('- "${key}": ${arr}')
 	}
 
 	println('map_str_to_arr_f64: ')
 	for key in cross_lang_serialization.map_str_to_arr_f64.keys() {
-		arr := &(cross_lang_serialization.map_str_to_arr_f64[key])
+		arr := unsafe { &(cross_lang_serialization.map_str_to_arr_f64[key]) }
 		println('- "${key}": ${arr}')
 	}
 }
 
-fn (cross_lang_serialization &CrossLangSerialization) save_data_to_file(file_path string)! {
+pub fn (cross_lang_serialization &CrossLangSerialization) save_data_to_file(file_path string)! {
 	println('Write data to file "${file_path}"')
 	mut f := os.open_file(file_path, 'wb')!
 
@@ -272,8 +269,8 @@ fn (cross_lang_serialization &CrossLangSerialization) save_data_to_file(file_pat
 	f.close()
 }
 
-fn (cross_lang_serialization &CrossLangSerialization) save_map_type_arr_data_to_file[T](mut f &os.File, type_name string, arr_key []string, map_str_to_arr_type map[string][]T)! {
-	for i, key in arr_key {
+pub fn (cross_lang_serialization &CrossLangSerialization) save_map_type_arr_data_to_file[T](mut f os.File, type_name string, arr_key []string, map_str_to_arr_type map[string][]T)! {
+	for key in arr_key {
 		mut h := sha256.new()
 	
 		len_key := u16(key.len)
@@ -551,27 +548,97 @@ fn (mut cross_lang_serialization CrossLangSerialization) load_data_from_file(fil
 	f.close()
 }
 
-fn main() {
-	mut rng := rand.PRNG(pcg32.PCG32RNG{})
-	arr_seed := seed.time_seed_array(pcg32.seed_len)
-	rng.seed(arr_seed)
+fn equal_maps[T](map_1 map[string][]T, map_2 map[string][]T) bool {
+	keys_1 := map_1.keys()
+	keys_2 := map_1.keys()
 
-	println('arr_seed: ${arr_seed}')
+	if keys_1 != keys_2 {
+		return false
+	}
 
-	mut cross_lang_serialization := CrossLangSerialization.new()
+	for key in keys_1 {
+		arr_1 := unsafe { &(map_1[key]) }
+		arr_2 := unsafe { &(map_2[key]) }
 
-	// load a test file, which was already created
-	file_path_1 := '/tmp/test_1.arrhex'
-	cross_lang_serialization.load_data_from_file(file_path_1)!
-	file_path_2 := '/tmp/test_v_data_1.arrhex'
-	cross_lang_serialization.save_data_to_file(file_path_2)!
+		if arr_1 != arr_2 {
+			return false
+		}
+	}
 
-	cross_lang_serialization.print_data()
+	return true
+}
 
-	println('cross_lang_serialization.dt: ${cross_lang_serialization.dt}')
-	println('cross_lang_serialization.dt_load: ${cross_lang_serialization.dt_load}')
-	println('cross_lang_serialization.dt_load == empty_dt? ${cross_lang_serialization.dt_load == empty_dt}')
+// TODO 20250709: add a test case for each map change in the future
+pub fn (mut cross_lang_serialization CrossLangSerialization) equal(other &CrossLangSerialization) bool {
+	if !equal_maps[u8](
+		cross_lang_serialization.map_str_to_arr_u8,
+		other.map_str_to_arr_u8,
+	) {
+		return false
+	}
 
-	println('magic_timestamp: ${magic_timestamp}')
-	println('magic_version: ${magic_version}')
+	if !equal_maps[u16](
+		cross_lang_serialization.map_str_to_arr_u16,
+		other.map_str_to_arr_u16,
+	) {
+		return false
+	}
+
+	if !equal_maps[u32](
+		cross_lang_serialization.map_str_to_arr_u32,
+		other.map_str_to_arr_u32,
+	) {
+		return false
+	}
+
+	if !equal_maps[u64](
+		cross_lang_serialization.map_str_to_arr_u64,
+		other.map_str_to_arr_u64,
+	) {
+		return false
+	}
+
+	if !equal_maps[i8](
+		cross_lang_serialization.map_str_to_arr_i8,
+		other.map_str_to_arr_i8,
+	) {
+		return false
+	}
+
+	if !equal_maps[i16](
+		cross_lang_serialization.map_str_to_arr_i16,
+		other.map_str_to_arr_i16,
+	) {
+		return false
+	}
+
+	if !equal_maps[i32](
+		cross_lang_serialization.map_str_to_arr_i32,
+		other.map_str_to_arr_i32,
+	) {
+		return false
+	}
+
+	if !equal_maps[i64](
+		cross_lang_serialization.map_str_to_arr_i64,
+		other.map_str_to_arr_i64,
+	) {
+		return false
+	}
+
+	if !equal_maps[f32](
+		cross_lang_serialization.map_str_to_arr_f32,
+		other.map_str_to_arr_f32,
+	) {
+		return false
+	}
+
+	if !equal_maps[f64](
+		cross_lang_serialization.map_str_to_arr_f64,
+		other.map_str_to_arr_f64,
+	) {
+		return false
+	}
+
+	return true
 }
